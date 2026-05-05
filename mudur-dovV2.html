@@ -235,9 +235,40 @@ h1 {
 
 #tip { color:#566573; font-size:.78em; margin-top:5px; letter-spacing:1px; }
 
+/* ---- LEADERBOARD ---- */
+#leaderboard {
+  position:fixed; left:18px; top:50%; transform:translateY(-50%);
+  background:rgba(10,20,30,.88); border:1px solid #1a3a5a;
+  border-radius:12px; padding:12px 16px; color:white;
+  font-family:Arial,sans-serif; min-width:165px;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);
+}
+#lb-title { font-size:.65em; color:#85929e; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; text-align:center; }
+.lb-row { display:flex; justify-content:space-between; gap:10px; font-size:.75em; padding:3px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+.lb-rank { color:#566573; width:16px; flex-shrink:0; }
+.lb-name { flex:1; color:#bdc3c7; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85px; }
+.lb-score { color:#e74c3c; font-weight:900; flex-shrink:0; }
+.lb-row:nth-child(1) .lb-rank { color:#f1c40f; }
+.lb-row:nth-child(2) .lb-rank { color:#b0b0b0; }
+.lb-row:nth-child(3) .lb-rank { color:#cd7f32; }
+
+#save-btn { background:#27ae60; border:none; border-radius:8px; padding:6px 16px; color:white; cursor:pointer; font-size:.8em; font-weight:900; margin-top:8px; transition:background .15s; font-family:Arial,sans-serif; }
+#save-btn:hover { background:#2ecc71; }
+
+#save-modal { position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:1000; display:none; align-items:center; justify-content:center; }
+#save-modal.open { display:flex; }
+#save-box { background:#1a252f; border:2px solid #2c4a6a; border-radius:14px; padding:24px 28px; text-align:center; color:white; }
+#save-box h3 { margin-bottom:10px; color:#e74c3c; font-size:1.2em; }
+#save-name-inp { background:#0e1b28; border:1px solid #2c4a6a; border-radius:8px; padding:8px 12px; color:white; font-size:1em; width:180px; outline:none; font-family:Arial,sans-serif; }
+#save-name-inp:focus { border-color:#e74c3c; }
+#save-confirm { background:#e74c3c; border:none; border-radius:8px; padding:8px 20px; color:white; cursor:pointer; font-size:.9em; font-weight:900; margin-top:12px; margin-left:8px; font-family:Arial,sans-serif; }
+#save-cancel-btn { background:#2c3e50; border:none; border-radius:8px; padding:8px 16px; color:#bbb; cursor:pointer; font-size:.9em; margin-top:12px; font-family:Arial,sans-serif; }
+
 /* ---- STICK ---- */
 #stick { position:fixed; pointer-events:none; z-index:999; transform-origin:40px 20px; transition:transform .1s ease; }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -368,6 +399,24 @@ h1 {
 <div id="drunk-text" class="overlay-text">🥴 SARHOŞ MODU!<br><span style="font-size:.45em;color:#aed6f1">Rakı tesir etti…</span></div>
 <div id="heaven"></div>
 
+<!-- Leaderboard -->
+<div id="leaderboard">
+  <div id="lb-title">🏆 SKOR TABLOSU</div>
+  <div id="lb-list"><div style="color:#566573;font-size:.7em;text-align:center">Yükleniyor…</div></div>
+</div>
+
+<!-- Save modal -->
+<div id="save-modal">
+  <div id="save-box">
+    <h3>🏆 Skoru Kaydet</h3>
+    <div style="font-size:.85em;color:#85929e;margin-bottom:12px">Skorun: <span id="modal-score" style="color:#e74c3c;font-weight:900">0</span></div>
+    <input id="save-name-inp" type="text" placeholder="Adını yaz" maxlength="20" autocomplete="off"/>
+    <br>
+    <button id="save-cancel-btn" onclick="closeSaveModal()">İptal</button>
+    <button id="save-confirm" onclick="confirmSave()">Kaydet</button>
+  </div>
+</div>
+
 <!-- Efficiency panel -->
 <div id="eff-panel">
   <div id="eff-title">📊 VERİMLİLİK</div>
@@ -396,6 +445,7 @@ h1 {
   <button class="weapon-btn" onclick="selectWeapon(this,'folder')">📁 Klasör</button>
   <button class="weapon-btn" onclick="selectWeapon(this,'coffee')">☕ Soğuk Kahve</button>
 </div>
+<button id="save-btn" onclick="openSaveModal()">🏆 Skoru Kaydet</button>
 <p id="tip">Müdürün kafasına tıkla! · 10 kombo → Melek Modu 😇 · Monitor & Rakı'ya tıkla!</p>
 
 <div id="stick"></div>
@@ -977,6 +1027,56 @@ head.addEventListener('animationend', () => head.classList.remove('bouncing'));
 arena.addEventListener('animationend', () => arena.classList.remove('shaking'));
 soul.addEventListener('animationend', () => soul.classList.remove('rising'));
 [angelText,error404,levelupTxt,drunkTxt].forEach(el => el.addEventListener('animationend',()=>el.classList.remove('show')));
+
+/* ---- FIREBASE ---- */
+const firebaseConfig = {
+  apiKey: "AIzaSyAf7aGLE6yM86iR_sEbMpZkUi-y1CRTCSI",
+  authDomain: "mudur-dov.firebaseapp.com",
+  databaseURL: "https://mudur-dov-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mudur-dov",
+  storageBucket: "mudur-dov.firebasestorage.app",
+  messagingSenderId: "728340455640",
+  appId: "1:728340455640:web:eb0de3590d1474663d77ad"
+};
+firebase.initializeApp(firebaseConfig);
+const fbdb = firebase.database();
+
+fbdb.ref('scores').orderByChild('score').limitToLast(10).on('value', snap => {
+  const list = [];
+  snap.forEach(child => list.push(child.val()));
+  list.sort((a, b) => b.score - a.score);
+  const lbList = document.getElementById('lb-list');
+  if (!list.length) {
+    lbList.innerHTML = '<div style="color:#566573;font-size:.7em;text-align:center;padding:4px">Henüz skor yok</div>';
+    return;
+  }
+  lbList.innerHTML = list.map((s, i) => `
+    <div class="lb-row">
+      <span class="lb-rank">${i+1}.</span>
+      <span class="lb-name">${s.name}</span>
+      <span class="lb-score">${s.score}</span>
+    </div>`).join('');
+});
+
+function openSaveModal() {
+  document.getElementById('modal-score').textContent = score;
+  document.getElementById('save-name-inp').value = '';
+  document.getElementById('save-modal').classList.add('open');
+  setTimeout(() => document.getElementById('save-name-inp').focus(), 50);
+}
+function closeSaveModal() {
+  document.getElementById('save-modal').classList.remove('open');
+}
+function confirmSave() {
+  const name = document.getElementById('save-name-inp').value.trim();
+  if (!name) return;
+  fbdb.ref('scores').push({ name, score, timestamp: Date.now() });
+  closeSaveModal();
+}
+document.getElementById('save-name-inp').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmSave();
+  if (e.key === 'Escape') closeSaveModal();
+});
 </script>
 </body>
 </html>
