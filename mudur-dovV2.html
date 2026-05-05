@@ -266,11 +266,95 @@ h1 {
 
 /* ---- STICK ---- */
 #stick { position:fixed; pointer-events:none; z-index:999; transform-origin:40px 20px; transition:transform .1s ease; }
+
+/* ---- START SCREEN ---- */
+#start-screen { position:fixed; inset:0; z-index:3000; background:#0e1b28; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; font-family:Arial,sans-serif; color:white; }
+#start-screen h2 { font-size:2.5em; color:#e74c3c; text-shadow:3px 3px 0 #7b241c; letter-spacing:3px; margin:0; }
+#start-screen > p { color:#85929e; font-size:.82em; letter-spacing:1px; margin:0; }
+#mgr-type-grid { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.mgr-card { background:#1a2a3a; border:2px solid #2c4a6a; border-radius:12px; padding:11px 14px; cursor:pointer; text-align:center; transition:all .15s; min-width:95px; }
+.mgr-card:hover { background:#243a4e; border-color:#4a6a8a; transform:translateY(-2px); }
+.mgr-card.selected { background:#922b21; border-color:#e74c3c; box-shadow:0 0 14px rgba(231,76,60,.4); }
+.mgr-card-icon { font-size:1.7em; margin-bottom:4px; }
+.mgr-card-label { font-size:.68em; font-weight:900; letter-spacing:.5px; }
+.mgr-card-sub { font-size:.56em; color:#85929e; margin-top:2px; }
+.mgr-card.selected .mgr-card-sub { color:#f1948a; }
+#boss-name-section { display:flex; flex-direction:column; align-items:center; gap:5px; }
+#boss-name-section label { font-size:.7em; color:#85929e; letter-spacing:1.5px; text-transform:uppercase; }
+#boss-name-inp { background:#1a2a3a; border:1px solid #2c4a6a; border-radius:8px; padding:9px 14px; color:white; font-size:.95em; width:210px; outline:none; font-family:Arial,sans-serif; text-align:center; }
+#boss-name-inp:focus { border-color:#e74c3c; }
+#boss-name-inp::placeholder { color:#566573; }
+#start-btn { background:#e74c3c; border:none; border-radius:12px; padding:11px 34px; color:white; font-size:1.05em; font-weight:900; cursor:pointer; letter-spacing:2px; transition:all .15s; font-family:Arial,sans-serif; box-shadow:0 4px 20px rgba(231,76,60,.4); }
+#start-btn:hover { background:#c0392b; transform:scale(1.04); }
+
+/* ---- TIMER ---- */
+#timer-display { text-align:center; }
+#timer-val { font-size:2.4em; font-weight:900; color:#27ae60; text-shadow:2px 2px 0 #1a7a40; }
+#timer-val.urgent { color:#e74c3c !important; text-shadow:2px 2px 0 #7b241c !important; animation:timer-pulse .5s ease-in-out infinite alternate; }
+@keyframes timer-pulse { 0%{transform:scale(1)} 100%{transform:scale(1.2)} }
+
+/* ---- GAME OVER ---- */
+#gameover-screen { position:fixed; inset:0; z-index:3000; background:rgba(8,16,24,.94); display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; font-family:Arial,sans-serif; color:white; }
+#gameover-screen.open { display:flex; }
+#go-title { font-size:2.8em; color:#e74c3c; text-shadow:3px 3px 0 #7b241c; margin:0; }
+#go-score-wrap { text-align:center; }
+#go-score-lbl { font-size:.72em; color:#85929e; letter-spacing:2px; text-transform:uppercase; }
+#go-score { font-size:3.5em; font-weight:900; color:#f1c40f; text-shadow:3px 3px 0 #8a6500; line-height:1; }
+#go-best-lbl { font-size:.72em; color:#566573; }
+.go-btn { border:none; border-radius:10px; padding:10px 26px; font-size:.88em; font-weight:900; cursor:pointer; font-family:Arial,sans-serif; transition:all .15s; }
+#go-save-btn { background:#27ae60; color:white; }
+#go-save-btn:hover { background:#2ecc71; }
+#go-replay-btn { background:#2c3e50; color:#bbb; }
+#go-replay-btn:hover { background:#3d5166; color:white; }
+
+/* ---- MANAGER SKINS ---- */
+#manager.mgr-muhasebe #body,#manager.mgr-muhasebe .arm { background:#5d6d7e; }
+#manager.mgr-muhasebe #tie { border-top-color:#154360; }
+#manager.mgr-muhasebe #head::before { background:#7f8c8d; }
+#manager.mgr-it #body,#manager.mgr-it .arm { background:#17202a; }
+#manager.mgr-it #tie { border-top-color:#7d3c98; }
+#manager.mgr-it #head::before { background:#111; }
+#manager.mgr-satis #body,#manager.mgr-satis .arm { background:#6e2f1a; }
+#manager.mgr-satis #tie { border-top-color:#e67e22; }
+#manager.mgr-satis #head::before { background:#4a2c0e; }
+#manager.mgr-ik #body,#manager.mgr-ik .arm { background:#1e6645; }
+#manager.mgr-ik #tie { border-top-color:#1abc9c; }
+#manager.mgr-ik #head::before { background:#6c3483; }
+/* damage overrides skins */
+#body.dmg1 { background:#1a4a6a !important; }
+#body.dmg2 { background:#17405e !important; }
+#body.dmg3 { background:#122e44 !important; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
+
+<!-- Start Screen -->
+<div id="start-screen">
+  <h2>🏢 MÜDÜRÜ DÖV!</h2>
+  <p>Müdürünü seç, adını yaz, 30 saniyede ne kadar vurabilirsin?</p>
+  <div id="mgr-type-grid"></div>
+  <div id="boss-name-section">
+    <label>Müdürünün adı</label>
+    <input id="boss-name-inp" type="text" maxlength="24" autocomplete="off" placeholder="Örn: Tahsin Bey"/>
+  </div>
+  <button id="start-btn" onclick="startGame()">🥊 OYUNU BAŞLAT</button>
+</div>
+
+<!-- Game Over Screen -->
+<div id="gameover-screen">
+  <div id="go-title">⏰ SÜRE DOLDU!</div>
+  <div id="go-score-wrap">
+    <div id="go-score-lbl">SKORUN</div>
+    <div id="go-score">0</div>
+    <div id="go-best-lbl"></div>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="go-btn" id="go-save-btn" onclick="openSaveModal()">🏆 Kaydet</button>
+    <button class="go-btn" id="go-replay-btn" onclick="restartGame()">🔄 Tekrar</button>
+  </div>
+</div>
 
 <h1>🏢 MÜDÜRÜ DÖV! 🏢</h1>
 
@@ -428,6 +512,7 @@ h1 {
 <!-- Scoreboard + Level -->
 <div id="scoreboard">
   <div class="stat"><div class="stat-val" id="score-val">0</div><div class="stat-label">Vuruş</div></div>
+  <div class="stat" id="timer-display"><div class="stat-val" id="timer-val" style="color:#27ae60">30</div><div class="stat-label">Saniye</div></div>
   <div class="stat"><div class="stat-val" id="combo-val">x1</div><div class="stat-label">Combo</div></div>
   <div class="stat"><div class="stat-val" id="best-val">0</div><div class="stat-label">En İyi</div></div>
 </div>
@@ -484,6 +569,17 @@ const effBars    = document.getElementById('eff-bars');
 const effRate    = document.getElementById('eff-rate');
 const effBonus   = document.getElementById('eff-bonus');
 
+/* ---- MANAGER TYPES ---- */
+const MANAGER_TYPES = [
+  { id:'patron',   icon:'👔', label:'Klasik Patron',      sub:'Genel Müdür',          skin:'',            defName:'Tahsin Palabıyık',  title:'Genel Müdür',          company:'Palabıyık Holding A.Ş. · Est. 1987', extraPhrases:[] },
+  { id:'muhasebe', icon:'💰', label:'Muhasebe Müdürü',    sub:'CFO',                  skin:'mgr-muhasebe',defName:'Kemal Sayarcı',     title:'Mali İşler Müdürü',    company:'Sayarcı Muhasebe Ltd. · Est. 2001',  extraPhrases:['Fatura nerede?!','KDV dahil mi?!','Bilanço yanlış!','Gider makbuzu getir!','Kâr marjı berbat!'] },
+  { id:'it',       icon:'💻', label:'IT Müdürü',          sub:'CTO',                  skin:'mgr-it',      defName:'Serkan Kernel',     title:'Bilgi İşlem Müdürü',   company:'KernelSoft A.Ş. · Since 2010',       extraPhrases:['Server çöktü!','Ticket aç!','Git push yaptın mı?!','Cache temizle!','Memory leak var!'] },
+  { id:'satis',    icon:'📈', label:'Satış Müdürü',       sub:'CSO',                  skin:'mgr-satis',   defName:'Murat Komisyoncu',  title:'Satış Direktörü',      company:'Komisyoncu Group · Est. 1995',       extraPhrases:['Hedef tutmadı!','Pipeline nerede?!','Lead kaçtı!','Kota yarıda kaldı!','Rakip fiyat kırdı!'] },
+  { id:'ik',       icon:'🤝', label:'İK Müdürü',          sub:'CHRO',                 skin:'mgr-ik',      defName:'Filiz Süreçler',    title:'İnsan Kaynakları Müd.', company:'SüreçHR A.Ş. · Est. 2005',          extraPhrases:['Performans görüşmesi!','İzin formu doldurulmadı!','Disiplin soruşturması!','Bordro hatası!','Anket doldurun!'] },
+];
+let selectedMgr = MANAGER_TYPES[0];
+let bossName = '';
+
 /* ---- STATE ---- */
 let score = 0, combo = 1, best = 0;
 let comboTimer = null, isSwinging = false;
@@ -492,6 +588,9 @@ let currentLevel = 0, monitorDmg = 0, damageLvl = 0;
 let currentWeapon = 'baseball';
 let hitTimestamps = [];
 let bonusActive = false;
+let gameState = 'idle'; // idle | playing | over
+let timeLeft = 30, timerInterval = null;
+let currentPhrases = phrases;
 
 /* ---- LEVELS ---- */
 const LEVELS = [
@@ -703,6 +802,7 @@ document.addEventListener('mousedown', e => {
 });
 
 function checkHit(x, y) {
+  if (gameState !== 'playing') return;
   const r = head.getBoundingClientRect(), m = 20;
   if (x >= r.left-m && x <= r.right+m && y >= r.top-m && y <= r.bottom+m) doHit(x, y);
 }
@@ -746,7 +846,7 @@ function doHit(x, y) {
   setTimeout(() => { mouth.style.borderTop='none'; mouth.style.borderBottom='3px solid #c0392b'; mouth.style.borderRadius='0 0 50% 50%'; mouth.style.bottom='12px'; }, 450);
 
   /* speech */
-  speech.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+  speech.textContent = currentPhrases[Math.floor(Math.random() * currentPhrases.length)];
   speech.style.opacity = '1';
   clearTimeout(speech._t);
   speech._t = setTimeout(() => { speech.style.opacity='0'; }, 2200);
@@ -861,17 +961,18 @@ function checkClothingDamage() {
 
 /* ---- NAMEPLATE ---- */
 function updateNameplate() {
+  const firstName = bossName.split(' ')[0];
   if (score >= 100) {
-    npName.textContent = 'Eski Genel Müdür';
+    npName.textContent = 'Eski ' + firstName;
     npTitle.textContent = 'İstifası Bekleniyor';
     npTitle.style.color = '#e74c3c';
   } else if (score >= 50) {
-    npName.textContent = 'Tahsin B. (Yorgun)';
+    npName.textContent = firstName + ' (Yorgun)';
     npTitle.textContent = 'Yetkileri Kısıtlı';
     npTitle.style.color = '#e67e22';
   } else if (score >= 20) {
-    npName.textContent = 'Tahsin B. (Terli)';
-    npTitle.textContent = 'Genel Müdür (Zayıfladı)';
+    npName.textContent = firstName + ' (Terli)';
+    npTitle.textContent = selectedMgr.title + ' (Zayıfladı)';
     npTitle.style.color = '';
   }
 }
@@ -1011,7 +1112,7 @@ const idleLines = [
 ];
 function idleGroan() {
   setTimeout(() => {
-    if (!speech.style.opacity || speech.style.opacity==='0') {
+    if (gameState === 'playing' && (!speech.style.opacity || speech.style.opacity==='0')) {
       speech.textContent = idleLines[Math.floor(Math.random()*idleLines.length)];
       speech.style.opacity='1';
       setTimeout(()=>{speech.style.opacity='0';},2500);
@@ -1027,6 +1128,89 @@ head.addEventListener('animationend', () => head.classList.remove('bouncing'));
 arena.addEventListener('animationend', () => arena.classList.remove('shaking'));
 soul.addEventListener('animationend', () => soul.classList.remove('rising'));
 [angelText,error404,levelupTxt,drunkTxt].forEach(el => el.addEventListener('animationend',()=>el.classList.remove('show')));
+
+/* ---- START SCREEN CARDS ---- */
+(function buildMgrCards() {
+  const grid = document.getElementById('mgr-type-grid');
+  MANAGER_TYPES.forEach((m, i) => {
+    const card = document.createElement('div');
+    card.className = 'mgr-card' + (i === 0 ? ' selected' : '');
+    card.innerHTML = `<div class="mgr-card-icon">${m.icon}</div><div class="mgr-card-label">${m.label}</div><div class="mgr-card-sub">${m.sub}</div>`;
+    card.onclick = () => {
+      document.querySelectorAll('.mgr-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedMgr = m;
+      const inp = document.getElementById('boss-name-inp');
+      if (!inp.value || MANAGER_TYPES.some(t => t.defName === inp.value)) inp.value = m.defName;
+      inp.placeholder = m.defName;
+    };
+    grid.appendChild(card);
+  });
+  document.getElementById('boss-name-inp').placeholder = MANAGER_TYPES[0].defName;
+})();
+
+/* ---- GAME FLOW ---- */
+const timerVal = document.getElementById('timer-val');
+
+function startGame() {
+  bossName = document.getElementById('boss-name-inp').value.trim() || selectedMgr.defName;
+
+  /* apply skin */
+  manager.className = selectedMgr.skin;
+
+  /* nameplate */
+  npName.textContent = bossName;
+  npTitle.textContent = selectedMgr.title;
+  npTitle.style.color = '';
+  document.querySelector('.card-company').textContent = selectedMgr.company;
+
+  /* phrases */
+  currentPhrases = [...phrases, ...selectedMgr.extraPhrases];
+
+  /* reset */
+  score = 0; combo = 1; damageLvl = 0; currentLevel = 0; monitorDmg = 0; hitTimestamps = [];
+  scoreVal.textContent = '0'; comboVal.textContent = 'x1'; bestVal.textContent = best;
+  body_el.className = '';
+  tie.style.transform = 'translateX(-50%) rotate(0deg)';
+  lvlIcon.textContent = LEVELS[0].icon; lvlNameEl.textContent = LEVELS[0].name; lvlNameEl.style.color = LEVELS[0].col; lvlProg.textContent = '0 / 20';
+  /* reset plant leaves */
+  for (let i=0;i<6;i++) { const lf=document.getElementById('lf'+i); if(lf){lf.style.opacity='1';lf.classList.remove('falling');} }
+  /* reset monitor */
+  document.getElementById('mcrack').setAttribute('opacity','0');
+  document.getElementById('mscrn').setAttribute('fill','#00b4d8');
+  document.getElementById('mbsod').setAttribute('opacity','0');
+
+  /* timer */
+  timeLeft = 30;
+  timerVal.textContent = '30';
+  timerVal.classList.remove('urgent');
+
+  gameState = 'playing';
+  document.getElementById('start-screen').style.display = 'none';
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerVal.textContent = timeLeft;
+    if (timeLeft <= 10) timerVal.classList.add('urgent');
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  gameState = 'over';
+  document.getElementById('go-score').textContent = score;
+  document.getElementById('go-best-lbl').textContent = best > 0 ? `En iyi: ${best}` : '';
+  if (score > best) best = score;
+  document.getElementById('gameover-screen').classList.add('open');
+}
+
+function restartGame() {
+  document.getElementById('gameover-screen').classList.remove('open');
+  gameState = 'idle';
+  document.getElementById('start-screen').style.display = 'flex';
+}
 
 /* ---- FIREBASE ---- */
 const firebaseConfig = {
