@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Müdürü Döv!</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width:100vw; height:100vh; overflow:hidden; background:#1a252f;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-family:Arial,sans-serif; cursor:none; user-select:none;
+  transition: background 1s;
+}
+body.drunk { animation: drunk-body 2.5s ease; }
+@keyframes drunk-body {
+  0%{transform:rotate(0)} 10%{transform:rotate(-3deg)} 22%{transform:rotate(2.5deg)}
+  35%{transform:rotate(-2deg) scale(1.01)} 50%{transform:rotate(1.5deg)}
+  70%{transform:rotate(-1deg)} 88%{transform:rotate(.5deg)} 100%{transform:rotate(0)}
+}
+
+h1 {
+  color:#e74c3c; font-size:2.6em;
+  text-shadow:3px 3px 0 #922b21,-1px -1px 0 #922b21;
+  margin-bottom:10px; letter-spacing:3px;
+  animation:title-pulse 2s ease-in-out infinite;
+}
+@keyframes title-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+
+/* ---- ARENA ---- */
+#arena {
+  position:relative; width:720px; height:430px;
+  background:linear-gradient(180deg,var(--wall,#d5d8dc) 0%,var(--wall,#d5d8dc) 68%,#7d6608 68%,#6e5f08 100%);
+  border-radius:16px; border:4px solid #0e1b28; overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.7); transition:background 1.2s;
+}
+#arena::before {
+  content:''; position:absolute; inset:0 0 32% 0;
+  background:repeating-linear-gradient(90deg,transparent,transparent 50px,rgba(0,0,0,.04) 50px,rgba(0,0,0,.04) 51px);
+  pointer-events:none;
+}
+#arena::after {
+  content:''; position:absolute; bottom:32%; left:0; right:0;
+  height:8px; background:#5d4e37;
+}
+
+/* ---- WINDOW ---- */
+.window {
+  position:absolute; top:25px; left:50px; width:110px; height:130px;
+  background:linear-gradient(135deg,#85c1e9 40%,#aed6f1);
+  border:8px solid #784212; border-radius:4px 4px 2px 2px;
+}
+.window::before { content:''; position:absolute; top:0; bottom:0; left:50%; width:4px; background:#784212; transform:translateX(-50%); }
+.window::after  { content:''; position:absolute; left:0; right:0; top:50%; height:4px; background:#784212; transform:translateY(-50%); }
+
+/* ---- TAPESTRY ---- */
+#tapestry { position:absolute; top:12px; right:52px; box-shadow:4px 4px 12px rgba(0,0,0,.6); border-radius:3px; }
+
+/* ---- PLANT ---- */
+#plant-wrap { position:absolute; bottom:31%; left:28px; line-height:1; }
+.leaf { font-size:22px; transition:opacity .4s, transform .4s; display:inline-block; }
+.leaf.falling { animation:leaf-fall .6s ease-out forwards; }
+@keyframes leaf-fall {
+  0%  { opacity:1; transform:translateY(0) rotate(0deg); }
+  100%{ opacity:0; transform:translateY(60px) rotate(120deg); }
+}
+#plant-pot { font-size:36px; display:block; margin-top:-4px; }
+
+/* ---- DESK ---- */
+#desk {
+  position:absolute; bottom:112px; left:50%; transform:translateX(-50%);
+  width:340px; height:22px;
+  background:linear-gradient(to bottom,#935116,#784212);
+  border-radius:5px; box-shadow:0 8px 0 #4a2c0a;
+}
+.desk-item { position:absolute; bottom:134px; }
+.monitor-wrap { left:calc(50% - 150px); cursor:pointer; }
+.papers  { left:calc(50% - 72px);  font-size:20px; }
+.coffee  { left:calc(50% + 78px);  font-size:22px; }
+.raki-glass { left:calc(50% + 113px); cursor:pointer; }
+
+/* ---- NAMEPLATE ---- */
+#nameplate {
+  position:absolute; bottom:106px; left:50%; transform:translateX(-50%);
+  background:linear-gradient(135deg,#fdfaf0,#fffde7 50%,#fdfaf0);
+  border:1.5px solid #b8970a; border-radius:6px; padding:5px 18px 7px;
+  z-index:10; box-shadow:0 3px 10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.9);
+  text-align:center; white-space:nowrap; min-width:180px;
+}
+.card-name  { font-size:12px; font-weight:900; font-family:Georgia,serif; color:#1a0a00; letter-spacing:1px; }
+.card-divider { width:85%; height:1px; background:linear-gradient(90deg,transparent,#c9a800 30%,#c9a800 70%,transparent); margin:3px auto; }
+.card-title { font-size:8px; color:#7a5c00; font-family:Arial,sans-serif; letter-spacing:2.5px; text-transform:uppercase; }
+.card-company { font-size:7px; color:#bbb; font-family:Arial,sans-serif; margin-top:2px; }
+
+/* ---- MANAGER ---- */
+#manager {
+  position:absolute; bottom:134px; left:50%; transform:translateX(-50%);
+  width:130px; display:flex; flex-direction:column; align-items:center;
+}
+@keyframes body-sway {
+  0%  { transform:translateX(-50%) rotate(0deg); }
+  18% { transform:translateX(calc(-50% + 22px)) rotate(13deg); }
+  42% { transform:translateX(calc(-50% - 17px)) rotate(-11deg); }
+  65% { transform:translateX(calc(-50% + 9px)) rotate(5deg); }
+  84% { transform:translateX(calc(-50% - 4px)) rotate(-2deg); }
+  100%{ transform:translateX(-50%) rotate(0deg); }
+}
+#manager.swaying { animation:body-sway .55s ease; }
+
+#head { width:72px; height:80px; background:#fad7c0; border-radius:50% 50% 45% 45%; position:relative; border:2px solid #e6b89d; z-index:2; }
+#head::before { content:''; position:absolute; top:-10px; left:3px; right:3px; height:28px; background:#2c1a0e; border-radius:55% 55% 20% 20%; }
+.ear { position:absolute; width:14px; height:20px; background:#fad7c0; border:2px solid #e6b89d; border-radius:50%; top:22px; }
+.ear.l { left:-11px; } .ear.r { right:-11px; }
+.eye { position:absolute; width:11px; height:11px; background:#1a1a1a; border-radius:50%; top:28px; transition:height .1s,border-radius .1s; }
+.eye.l { left:13px; } .eye.r { right:13px; }
+.brow { position:absolute; width:16px; height:4px; background:#2c1a0e; border-radius:2px; top:21px; transition:transform .2s; }
+.brow.l { left:10px; transform:rotate(5deg); }
+.brow.r { right:10px; transform:rotate(-5deg); }
+#nose { position:absolute; bottom:22px; left:50%; transform:translateX(-50%); width:10px; height:7px; border-bottom:3px solid #d4a090; border-left:2px solid #d4a090; border-right:2px solid #d4a090; border-radius:0 0 50% 50%; }
+#mouth { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); width:22px; height:9px; border-bottom:3px solid #c0392b; border-radius:0 0 50% 50%; transition:all .15s; }
+#speech { position:absolute; background:white; border:2px solid #333; border-radius:12px; padding:7px 11px; font-size:13px; font-weight:bold; color:#222; max-width:160px; text-align:center; white-space:normal; top:-80px; right:-100px; opacity:0; transition:opacity .2s; z-index:20; pointer-events:none; line-height:1.4; box-shadow:2px 2px 8px rgba(0,0,0,.2); }
+#speech::after { content:''; position:absolute; bottom:-11px; left:18px; border:6px solid transparent; border-top-color:#333; }
+#body { width:95px; height:105px; background:#1a5276; border-radius:12px 12px 0 0; position:relative; margin-top:-2px; z-index:1; transition:background .5s; }
+#body::before { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:24px; height:18px; background:#ecf0f1; clip-path:polygon(0 0,100% 0,50% 100%); }
+#tie { position:absolute; top:18px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:9px solid transparent; border-right:9px solid transparent; border-top:58px solid #c62828; transition:transform .3s ease; transform-origin:top center; }
+/* jacket damage states */
+#body.dmg1 { background:#1a4a6a; }
+#body.dmg2 { background:#17405e; }
+#body.dmg3 { background:#122e44; }
+#body.dmg3::after { content:''; position:absolute; top:30px; right:8px; width:18px; height:30px; background:#0e2233; border-radius:2px; transform:rotate(15deg); }
+.arm { position:absolute; width:20px; height:75px; background:#1a5276; border-radius:10px; top:12px; }
+.arm.l { left:-16px; transform:rotate(8deg); }
+.arm.r { right:-16px; transform:rotate(-8deg); }
+.hand { position:absolute; width:20px; height:20px; background:#fad7c0; border-radius:50%; bottom:-2px; }
+
+/* ---- SOUL ---- */
+#soul { position:absolute; bottom:134px; left:50%; transform:translateX(-50%); opacity:0; pointer-events:none; z-index:60; text-align:center; filter:drop-shadow(0 0 18px gold) drop-shadow(0 0 36px rgba(255,255,255,.8)); }
+#soul.rising { animation:soul-rise 3.8s ease-out forwards; }
+@keyframes soul-rise {
+  0%  { opacity:0;   transform:translateX(-50%) translateY(0) scale(.6) rotate(-5deg); }
+  10% { opacity:.9;  transform:translateX(-50%) translateY(-15px) scale(1.1) rotate(3deg); }
+  35% { opacity:.85; transform:translateX(-50%) translateY(-90px) scale(1) rotate(-3deg); }
+  65% { opacity:.6;  transform:translateX(-50%) translateY(-210px) scale(.9) rotate(5deg); }
+  100%{ opacity:0;   transform:translateX(-50%) translateY(-390px) scale(.5) rotate(-8deg); }
+}
+
+/* ---- OVERLAY TEXTS ---- */
+.overlay-text {
+  position:fixed; top:44%; left:50%; transform:translate(-50%,-50%);
+  font-size:3.2em; font-weight:900; color:#fff; z-index:300;
+  pointer-events:none; opacity:0; text-align:center; line-height:1.3;
+}
+#angel-text { text-shadow:0 0 20px #ffd700,0 0 55px #ffd700,3px 3px 0 #a07800; }
+#angel-text.show { animation:overlay-pop 3.2s ease-out forwards; }
+
+#error404 { color:#e74c3c; font-size:3.8em; text-shadow:0 0 20px rgba(231,76,60,.5),2px 2px 0 #7b241c; }
+#error404.show { animation:overlay-pop .9s ease-out forwards; }
+
+#levelup-text { color:#f1c40f; text-shadow:0 0 25px #f1c40f,0 0 60px #f39c12,3px 3px 0 #8a6500; top:38%; }
+#levelup-text.show { animation:overlay-pop 2.5s ease-out forwards; }
+
+#drunk-text { color:#3498db; font-size:2em; text-shadow:0 0 20px #3498db; top:35%; }
+#drunk-text.show { animation:overlay-pop 2s ease-out forwards; }
+
+@keyframes overlay-pop {
+  0%  { opacity:0; transform:translate(-50%,-50%) scale(.3); }
+  15% { opacity:1; transform:translate(-50%,-50%) scale(1.25); }
+  45% { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  80% { opacity:.9; }
+  100%{ opacity:0; transform:translate(-50%,-50%) scale(.8) translateY(-25px); }
+}
+
+#heaven { position:fixed; inset:0; background:radial-gradient(ellipse at 50% 25%,rgba(255,255,180,.6) 0%,rgba(255,210,70,.3) 35%,transparent 70%); z-index:150; pointer-events:none; opacity:0; transition:opacity .4s; }
+#heaven.active { opacity:1; }
+
+/* Slowmo overlay */
+#slowmo-overlay { position:absolute; inset:0; background:rgba(52,152,219,.2); pointer-events:none; z-index:80; opacity:0; transition:opacity .3s; border-radius:12px; }
+#slowmo-overlay.active { opacity:1; animation:slowmo-pulse 1s ease-in-out infinite alternate; }
+@keyframes slowmo-pulse { 0%{background:rgba(52,152,219,.12)} 100%{background:rgba(52,152,219,.28)} }
+
+/* ---- ANIMATIONS ---- */
+@keyframes head-bounce { 0%{transform:rotate(0) translateY(0)} 20%{transform:rotate(-18deg) translateY(-12px)} 50%{transform:rotate(12deg) translateY(-6px)} 75%{transform:rotate(-8deg) translateY(-2px)} 100%{transform:rotate(0) translateY(0)} }
+.bouncing { animation:head-bounce .35s ease forwards; }
+@keyframes arena-shake { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-6px,4px)} 40%{transform:translate(6px,-4px)} 60%{transform:translate(-4px,6px)} 80%{transform:translate(4px,-4px)} }
+.shaking { animation:arena-shake .3s ease; }
+
+/* ---- FX ---- */
+.star-fx,.key-fx,.paper-fx,.coffee-drop { position:fixed; pointer-events:none; z-index:900; animation:star-out .65s ease-out forwards; }
+.key-fx { font-size:18px; font-weight:900; color:#f1c40f; text-shadow:1px 1px 0 #555; background:#263238; border-radius:4px; padding:2px 5px; }
+.paper-fx { font-size:22px; }
+.coffee-drop { font-size:14px; animation-duration:.9s; }
+@keyframes star-out { 0%{opacity:1;transform:translate(0,0) scale(1.3)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.2)} }
+
+.hit-word { position:fixed; pointer-events:none; font-size:36px; font-weight:900; color:#f1c40f; text-shadow:2px 2px 0 #d68910,-2px -2px 0 #d68910,2px -2px 0 #d68910,-2px 2px 0 #d68910; z-index:900; animation:word-out .75s ease-out forwards; }
+@keyframes word-out { 0%{opacity:1;transform:translate(-50%,0) scale(1.4)} 100%{opacity:0;transform:translate(-50%,-100px) scale(.8)} }
+
+/* ---- SCOREBOARD ---- */
+#scoreboard { display:flex; gap:40px; margin-top:10px; color:white; }
+.stat { text-align:center; }
+.stat-val { font-size:2.4em; font-weight:900; color:#e74c3c; text-shadow:2px 2px 0 #7b241c; }
+.stat-val.pop { animation:pop .2s ease; }
+@keyframes pop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+.stat-label { font-size:.75em; color:#85929e; letter-spacing:2px; text-transform:uppercase; }
+
+/* ---- LEVEL BADGE ---- */
+#level-badge {
+  display:flex; align-items:center; gap:10px; margin-top:6px;
+  background:#1e2e3e; border:2px solid #2c4a6a; border-radius:10px;
+  padding:5px 18px; color:white;
+}
+#level-icon { font-size:1.4em; }
+#level-name-el { font-size:.95em; font-weight:900; letter-spacing:1px; }
+#level-prog { font-size:.7em; color:#566573; }
+#level-badge.glow { animation:badge-glow .5s ease 3; }
+@keyframes badge-glow { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 20px var(--glow,#f1c40f)} }
+
+/* ---- EFFICIENCY GRAPH ---- */
+#eff-panel {
+  position:fixed; right:18px; bottom:160px;
+  background:rgba(10,20,30,.85); border:1px solid #1a3a5a;
+  border-radius:10px; padding:8px 12px 6px; color:white;
+  font-family:Arial,sans-serif; min-width:110px;
+  box-shadow:0 4px 16px rgba(0,0,0,.5);
+}
+#eff-title { font-size:.6em; color:#85929e; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:5px; }
+#eff-bars { display:flex; gap:3px; align-items:flex-end; height:36px; margin-bottom:4px; }
+.eff-bar { width:9px; border-radius:2px 2px 0 0; min-height:2px; transition:height .25s,background .25s; }
+#eff-rate { font-size:.68em; font-weight:900; text-align:center; }
+#eff-bonus { font-size:.6em; color:#f1c40f; text-align:center; opacity:0; transition:opacity .3s; }
+
+/* ---- WEAPON BAR ---- */
+#weapon-bar { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; justify-content:center; }
+.weapon-btn { background:#2c3e50; border:2px solid #4a6278; border-radius:10px; padding:6px 12px; color:#bbb; cursor:pointer; font-size:.8em; transition:all .15s; display:flex; align-items:center; gap:5px; font-family:Arial,sans-serif; }
+.weapon-btn:hover { background:#3d5166; border-color:#85929e; color:white; transform:translateY(-2px); }
+.weapon-btn.active { background:#922b21; border-color:#e74c3c; color:white; box-shadow:0 0 12px rgba(231,76,60,.4); }
+
+#tip { color:#566573; font-size:.78em; margin-top:5px; letter-spacing:1px; }
+
+/* ---- STICK ---- */
+#stick { position:fixed; pointer-events:none; z-index:999; transform-origin:40px 20px; transition:transform .1s ease; }
+</style>
+</head>
+<body>
+
+<h1>🏢 MÜDÜRÜ DÖV! 🏢</h1>
+
+<div id="arena">
+  <div class="window"></div>
+
+  <!-- Plant with individual leaves -->
+  <div id="plant-wrap">
+    <span class="leaf" id="lf0">🍃</span><span class="leaf" id="lf1">🍃</span>
+    <span class="leaf" id="lf2">🌿</span><span class="leaf" id="lf3">🍃</span>
+    <span class="leaf" id="lf4">🌿</span><span class="leaf" id="lf5">🍃</span>
+    <span id="plant-pot">🪴</span>
+  </div>
+
+  <!-- Tapestry -->
+  <div id="tapestry">
+    <svg width="148" height="122" viewBox="0 0 148 122" style="display:block">
+      <rect width="148" height="122" fill="#6B0B0B" rx="3"/>
+      <rect x="4" y="4" width="140" height="114" fill="none" stroke="#D4AF37" stroke-width="3.5"/>
+      <rect x="10" y="10" width="128" height="102" fill="none" stroke="#8B1A1A" stroke-width="1.5"/>
+      <rect x="12" y="12" width="124" height="98" fill="none" stroke="#D4AF37" stroke-width="1"/>
+      <polygon points="4,4 16,4 4,16" fill="#D4AF37"/><polygon points="144,4 132,4 144,16" fill="#D4AF37"/>
+      <polygon points="4,118 16,118 4,106" fill="#D4AF37"/><polygon points="144,118 132,118 144,106" fill="#D4AF37"/>
+      <polygon points="33,5 38,9 33,13 28,9" fill="#D4AF37"/><polygon points="52,5 57,9 52,13 47,9" fill="#D4AF37"/>
+      <polygon points="71,5 76,9 71,13 66,9" fill="#D4AF37"/><polygon points="90,5 95,9 90,13 85,9" fill="#D4AF37"/>
+      <polygon points="109,5 114,9 109,13 104,9" fill="#D4AF37"/>
+      <polygon points="33,117 38,113 33,109 28,113" fill="#D4AF37"/><polygon points="71,117 76,113 71,109 66,113" fill="#D4AF37"/>
+      <polygon points="109,117 114,113 109,109 104,113" fill="#D4AF37"/>
+      <polygon points="5,33 9,28 13,33 9,38" fill="#D4AF37"/><polygon points="5,71 9,66 13,71 9,76" fill="#D4AF37"/>
+      <polygon points="143,33 139,28 135,33 139,38" fill="#D4AF37"/><polygon points="143,71 139,66 135,71 139,76" fill="#D4AF37"/>
+      <ellipse cx="66" cy="76" rx="26" ry="16" fill="#D4AF37"/>
+      <ellipse cx="43" cy="79" rx="11" ry="13" fill="#D4AF37"/>
+      <path d="M84,66 Q93,60 96,67 Q98,74 90,77" fill="#D4AF37"/>
+      <ellipse cx="99" cy="60" rx="12" ry="10" fill="#D4AF37"/>
+      <circle cx="103" cy="57" r="2.5" fill="#6B0B0B"/>
+      <ellipse cx="92" cy="52" rx="4" ry="7" fill="#D4AF37" transform="rotate(-15,92,52)"/>
+      <path d="M90,51 L86,34 L82,21" fill="none" stroke="#D4AF37" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M86,34 L78,27" fill="none" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M95,50 L102,33 L107,20" fill="none" stroke="#D4AF37" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M102,33 L111,26" fill="none" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="48" y="91" width="6.5" height="22" rx="3" fill="#D4AF37"/>
+      <rect x="58" y="91" width="6.5" height="22" rx="3" fill="#D4AF37"/>
+      <rect x="73" y="91" width="6.5" height="22" rx="3" fill="#D4AF37"/>
+      <rect x="83" y="91" width="6.5" height="22" rx="3" fill="#D4AF37"/>
+    </svg>
+  </div>
+
+  <!-- Interactive monitor -->
+  <div class="desk-item monitor-wrap" id="monitor-wrap" onclick="smashMonitor(event)">
+    <svg id="monitor-svg" width="52" height="48" viewBox="0 0 52 48" style="display:block">
+      <rect x="0" y="0" width="52" height="36" rx="3" fill="#1a1a2e"/>
+      <rect x="2" y="2" width="48" height="32" rx="2" id="mscrn" fill="#00b4d8"/>
+      <text x="12" y="22" font-size="12">📊</text><text x="30" y="22" font-size="12">📋</text>
+      <rect x="23" y="36" width="6" height="8" fill="#555"/>
+      <rect x="15" y="44" width="22" height="4" rx="2" fill="#555"/>
+      <g id="mcrack" opacity="0">
+        <line x1="26" y1="2" x2="14" y2="18" stroke="rgba(0,0,0,.85)" stroke-width="1.5"/>
+        <line x1="14" y1="18" x2="6"  y2="34" stroke="rgba(0,0,0,.85)" stroke-width="1.5"/>
+        <line x1="14" y1="18" x2="22" y2="28" stroke="rgba(0,0,0,.6)"  stroke-width="1"/>
+        <line x1="26" y1="2"  x2="35" y2="9"  stroke="rgba(0,0,0,.5)"  stroke-width="0.8"/>
+        <line x1="20" y1="12" x2="8"  y2="8"  stroke="rgba(0,0,0,.4)"  stroke-width="0.7"/>
+      </g>
+      <g id="mbsod" opacity="0">
+        <rect x="2" y="2" width="48" height="32" rx="2" fill="#0000aa"/>
+        <text x="26" y="20" text-anchor="middle" font-family="sans-serif" font-size="13" fill="white">:(</text>
+        <text x="26" y="30" text-anchor="middle" font-family="monospace" font-size="3.5" fill="white">SYSTEM_ERROR</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="desk-item papers">📄</div>
+  <div class="desk-item coffee" style="left:calc(50% + 78px);font-size:22px">☕</div>
+
+  <!-- Interactive rakı -->
+  <div class="desk-item raki-glass" id="raki-item" onclick="drinkRaki(event)">
+    <svg width="20" height="56" viewBox="0 0 20 56" style="display:block">
+      <polygon points="2,0 18,0 16,48 4,48" fill="rgba(215,235,255,.18)" stroke="rgba(255,255,255,.7)" stroke-width="1.3"/>
+      <polygon points="3,6 17,6 15,46 5,46" fill="rgba(235,243,255,.9)"/>
+      <line x1="4.5" y1="1" x2="3.5" y2="46" stroke="rgba(255,255,255,.38)" stroke-width="1.4"/>
+      <rect x="7" y="20" width="6" height="5" rx="1" fill="rgba(255,255,255,.95)"/>
+      <rect x="1" y="48" width="18" height="8" rx="2.5" fill="rgba(200,225,255,.3)" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/>
+    </svg>
+  </div>
+
+  <!-- Slowmo overlay -->
+  <div id="slowmo-overlay"></div>
+
+  <!-- Manager -->
+  <div id="manager">
+    <div id="head">
+      <div class="ear l"></div><div class="ear r"></div>
+      <div class="brow l" id="brow-l"></div><div class="brow r" id="brow-r"></div>
+      <div class="eye l" id="eye-l"></div><div class="eye r" id="eye-r"></div>
+      <div id="nose"></div><div id="mouth"></div>
+      <div id="speech"></div>
+    </div>
+    <div id="body">
+      <div class="arm l"><div class="hand"></div></div>
+      <div class="arm r"><div class="hand"></div></div>
+      <div id="tie"></div>
+    </div>
+  </div>
+
+  <!-- Soul -->
+  <div id="soul">
+    <div style="font-size:18px;margin-bottom:2px">✨ ✨</div>
+    <div style="font-size:62px;line-height:1">😇</div>
+    <div style="font-size:16px;margin-top:2px">✨ ✨</div>
+  </div>
+
+  <!-- Nameplate -->
+  <div id="nameplate">
+    <div class="card-name" id="np-name">Tahsin Palabıyık</div>
+    <div class="card-divider"></div>
+    <div class="card-title" id="np-title">Genel Müdür</div>
+    <div class="card-company">Palabıyık Holding A.Ş. · Est. 1987</div>
+  </div>
+
+  <div id="desk"></div>
+</div>
+
+<!-- Overlays -->
+<div id="angel-text"  class="overlay-text">😇 MELEK MODU! 😇<br><span style="font-size:.5em;color:#ffe97a;letter-spacing:2px">RUHU BEDENİNDEN AYRILDI!</span></div>
+<div id="error404"   class="overlay-text">💻 ERROR 404<br><span style="font-size:.45em;color:#ff6b6b">Müdür Bulunamadı!</span></div>
+<div id="levelup-text" class="overlay-text"></div>
+<div id="drunk-text" class="overlay-text">🥴 SARHOŞ MODU!<br><span style="font-size:.45em;color:#aed6f1">Rakı tesir etti…</span></div>
+<div id="heaven"></div>
+
+<!-- Efficiency panel -->
+<div id="eff-panel">
+  <div id="eff-title">📊 VERİMLİLİK</div>
+  <div id="eff-bars"></div>
+  <div id="eff-rate">— vuruş/sn</div>
+  <div id="eff-bonus">🔥 BONUS!</div>
+</div>
+
+<!-- Scoreboard + Level -->
+<div id="scoreboard">
+  <div class="stat"><div class="stat-val" id="score-val">0</div><div class="stat-label">Vuruş</div></div>
+  <div class="stat"><div class="stat-val" id="combo-val">x1</div><div class="stat-label">Combo</div></div>
+  <div class="stat"><div class="stat-val" id="best-val">0</div><div class="stat-label">En İyi</div></div>
+</div>
+<div id="level-badge">
+  <span id="level-icon">🎓</span>
+  <span id="level-name-el" style="color:#85929e">Stajyer</span>
+  <span id="level-prog">0 / 20</span>
+</div>
+
+<div id="weapon-bar">
+  <button class="weapon-btn active" onclick="selectWeapon(this,'baseball')">⚾ Beyzbol</button>
+  <button class="weapon-btn" onclick="selectWeapon(this,'golf')">🏌️ Golf</button>
+  <button class="weapon-btn" onclick="selectWeapon(this,'shovel')">⛏️ Kürek</button>
+  <button class="weapon-btn" onclick="selectWeapon(this,'keyboard')">⌨️ Klavye</button>
+  <button class="weapon-btn" onclick="selectWeapon(this,'folder')">📁 Klasör</button>
+  <button class="weapon-btn" onclick="selectWeapon(this,'coffee')">☕ Soğuk Kahve</button>
+</div>
+<p id="tip">Müdürün kafasına tıkla! · 10 kombo → Melek Modu 😇 · Monitor & Rakı'ya tıkla!</p>
+
+<div id="stick"></div>
+
+<script>
+/* ---- DOM REFS ---- */
+const arena      = document.getElementById('arena');
+const manager    = document.getElementById('manager');
+const head       = document.getElementById('head');
+const body_el    = document.getElementById('body');
+const eyeL       = document.getElementById('eye-l');
+const eyeR       = document.getElementById('eye-r');
+const browL      = document.getElementById('brow-l');
+const browR      = document.getElementById('brow-r');
+const mouth      = document.getElementById('mouth');
+const tie        = document.getElementById('tie');
+const speech     = document.getElementById('speech');
+const scoreVal   = document.getElementById('score-val');
+const comboVal   = document.getElementById('combo-val');
+const bestVal    = document.getElementById('best-val');
+const stick      = document.getElementById('stick');
+const soul       = document.getElementById('soul');
+const angelText  = document.getElementById('angel-text');
+const heaven     = document.getElementById('heaven');
+const error404   = document.getElementById('error404');
+const levelupTxt = document.getElementById('levelup-text');
+const drunkTxt   = document.getElementById('drunk-text');
+const slowmoOvl  = document.getElementById('slowmo-overlay');
+const npName     = document.getElementById('np-name');
+const npTitle    = document.getElementById('np-title');
+const lvlBadge   = document.getElementById('level-badge');
+const lvlIcon    = document.getElementById('level-icon');
+const lvlNameEl  = document.getElementById('level-name-el');
+const lvlProg    = document.getElementById('level-prog');
+const effBars    = document.getElementById('eff-bars');
+const effRate    = document.getElementById('eff-rate');
+const effBonus   = document.getElementById('eff-bonus');
+
+/* ---- STATE ---- */
+let score = 0, combo = 1, best = 0;
+let comboTimer = null, isSwinging = false;
+let angelActive = false, slowmoActive = false;
+let currentLevel = 0, monitorDmg = 0, damageLvl = 0;
+let currentWeapon = 'baseball';
+let hitTimestamps = [];
+let bonusActive = false;
+
+/* ---- LEVELS ---- */
+const LEVELS = [
+  { name:'Stajyer',      icon:'🎓', min:0,   next:20,  wall:'#d5d8dc', col:'#85929e' },
+  { name:'Analist',      icon:'📊', min:20,  next:50,  wall:'#ddd5c8', col:'#27ae60' },
+  { name:'Uzman',        icon:'💼', min:50,  next:100, wall:'#c8d0dc', col:'#2980b9' },
+  { name:'Mali Müşavir', icon:'💰', min:100, next:200, wall:'#e8e2d0', col:'#8e44ad' },
+  { name:'GMY',          icon:'👔', min:200, next:null,wall:'#d4c4b0', col:'#e67e22' },
+];
+
+/* ---- WEAPON SVGs ---- */
+const weapons = {
+  baseball:`<svg width="80" height="220" viewBox="0 0 80 220">
+    <rect x="33" y="0" width="14" height="55" rx="7" fill="#5d2e0c"/>
+    <rect x="35" y="4" width="10" height="47" rx="5" fill="#7d3e14"/>
+    <rect x="33" y="12" width="14" height="4" rx="2" fill="#3d1e00" opacity=".7"/>
+    <rect x="33" y="22" width="14" height="4" rx="2" fill="#3d1e00" opacity=".7"/>
+    <rect x="33" y="32" width="14" height="4" rx="2" fill="#3d1e00" opacity=".7"/>
+    <rect x="33" y="42" width="14" height="4" rx="2" fill="#3d1e00" opacity=".7"/>
+    <rect x="36" y="50" width="8" height="165" rx="4" fill="#d2691e"/>
+    <rect x="37" y="50" width="4" height="165" rx="2" fill="#e8944a" opacity=".5"/>
+    <ellipse cx="40" cy="215" rx="5" ry="5" fill="#a0522d"/>
+  </svg>`,
+
+  golf:`<svg width="80" height="220" viewBox="0 0 80 220">
+    <rect x="34" y="0" width="12" height="42" rx="6" fill="#1c1c1c"/>
+    <rect x="35" y="2" width="6" height="38" rx="3" fill="#2d2d2d"/>
+    <line x1="34" y1="9"  x2="46" y2="9"  stroke="#111" stroke-width="2.2" opacity=".7"/>
+    <line x1="34" y1="17" x2="46" y2="17" stroke="#111" stroke-width="2.2" opacity=".7"/>
+    <line x1="34" y1="25" x2="46" y2="25" stroke="#111" stroke-width="2.2" opacity=".7"/>
+    <line x1="34" y1="33" x2="46" y2="33" stroke="#111" stroke-width="2.2" opacity=".7"/>
+    <line x1="40" y1="40" x2="40" y2="193" stroke="#c0c0c0" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="41" y1="40" x2="41" y2="193" stroke="#e8e8e8" stroke-width="1.2" opacity=".5" stroke-linecap="round"/>
+    <rect x="36" y="191" width="8" height="11" rx="2" fill="#777"/>
+    <path d="M17,201 Q40,195 60,201 L57,218 Q40,222 21,218 Z" fill="#7a7a7a"/>
+    <path d="M19,202 Q40,196 58,202 L55,211 Q40,215 23,211 Z" fill="#b0b0b0"/>
+    <line x1="24" y1="204" x2="23" y2="215" stroke="#555" stroke-width="1" opacity=".45"/>
+    <line x1="31" y1="203" x2="30" y2="216" stroke="#555" stroke-width="1" opacity=".45"/>
+    <line x1="38" y1="202" x2="37" y2="217" stroke="#555" stroke-width="1" opacity=".45"/>
+    <line x1="45" y1="202" x2="44" y2="217" stroke="#555" stroke-width="1" opacity=".45"/>
+    <line x1="52" y1="203" x2="51" y2="216" stroke="#555" stroke-width="1" opacity=".45"/>
+  </svg>`,
+
+  shovel:`<svg width="80" height="220" viewBox="0 0 80 220">
+    <path d="M27,8 Q27,0 40,0 Q53,0 53,8 Q53,16 40,16 Q27,16 27,8" fill="none" stroke="#5d2e0c" stroke-width="7" stroke-linecap="round"/>
+    <rect x="37" y="14" width="6" height="6" rx="2" fill="#5d2e0c"/>
+    <rect x="37" y="18" width="6" height="138" rx="3" fill="#8B4513"/>
+    <rect x="38.5" y="18" width="3" height="138" rx="1.5" fill="#b5703a" opacity=".42"/>
+    <rect x="31" y="153" width="18" height="9" rx="2.5" fill="#666"/>
+    <rect x="32" y="154" width="16" height="3.5" rx="1" fill="#999"/>
+    <path d="M19,162 L61,162 L56,217 L24,217 Z" fill="#888"/>
+    <path d="M21,163 L59,163 L54,215 L26,215 Z" fill="#c0c0c0" opacity=".5"/>
+    <line x1="28" y1="166" x2="25" y2="213" stroke="rgba(255,255,255,.38)" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="19" y1="162" x2="61" y2="162" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/>
+  </svg>`,
+
+  keyboard:`<svg width="80" height="220" viewBox="0 0 80 220">
+    <rect x="30" y="0" width="20" height="50" rx="10" fill="#1c1c1c"/>
+    <rect x="32" y="3" width="8" height="44" rx="4" fill="#2d2d2d"/>
+    <line x1="30" y1="11" x2="50" y2="11" stroke="#111" stroke-width="2" opacity=".8"/>
+    <line x1="30" y1="20" x2="50" y2="20" stroke="#111" stroke-width="2" opacity=".8"/>
+    <line x1="30" y1="29" x2="50" y2="29" stroke="#111" stroke-width="2" opacity=".8"/>
+    <line x1="30" y1="38" x2="50" y2="38" stroke="#111" stroke-width="2" opacity=".8"/>
+    <rect x="36" y="48" width="8" height="22" rx="4" fill="#444"/>
+    <rect x="4" y="68" width="72" height="150" rx="8" fill="#263238"/>
+    <rect x="6" y="70" width="68" height="146" rx="7" fill="#37474f"/>
+    <rect x="9" y="75" width="62" height="9" rx="2" fill="#1c2b33"/>
+    <rect x="9" y="87" width="62" height="9" rx="2" fill="#1c2b33"/>
+    <rect x="9" y="99" width="62" height="9" rx="2" fill="#1c2b33"/>
+    <rect x="9" y="111" width="62" height="9" rx="2" fill="#1c2b33"/>
+    <rect x="20" y="123" width="40" height="9" rx="3" fill="#1c2b33"/>
+    <rect x="11" y="76" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="19" y="76" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="27" y="76" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="35" y="76" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="43" y="76" width="6" height="7" rx="1" fill="#e74c3c"/>
+    <rect x="51" y="76" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="59" y="76" width="10" height="7" rx="1" fill="#c0392b"/>
+    <rect x="12" y="88" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="20" y="88" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="28" y="88" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="36" y="88" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="44" y="88" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="52" y="88" width="17" height="7" rx="1" fill="#c0392b"/>
+    <rect x="13" y="100" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="21" y="100" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="29" y="100" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="37" y="100" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="45" y="100" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="53" y="100" width="16" height="7" rx="1" fill="#c0392b"/>
+    <rect x="11" y="112" width="10" height="7" rx="1" fill="#2c3e50"/>
+    <rect x="23" y="112" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="31" y="112" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="39" y="112" width="6" height="7" rx="1" fill="#455a64"/>
+    <rect x="47" y="112" width="14" height="7" rx="1" fill="#2c3e50"/>
+    <rect x="22" y="124" width="36" height="7" rx="2" fill="#455a64"/>
+    <rect x="9" y="138" width="62" height="28" rx="3" fill="#1a252f"/>
+    <text x="40" y="152" text-anchor="middle" font-family="monospace" font-size="7" fill="#27ae60">GAMING</text>
+    <text x="40" y="162" text-anchor="middle" font-family="monospace" font-size="4" fill="#546e7a">MODEL TK-9000</text>
+    <rect x="9" y="171" width="62" height="45" rx="3" fill="#1c2b33"/>
+    <rect x="9" y="212" width="62" height="3" rx="1" fill="#e74c3c" opacity=".8"/>
+  </svg>`,
+
+  folder:`<svg width="80" height="220" viewBox="0 0 80 220">
+    <rect x="30" y="0" width="20" height="48" rx="10" fill="#1a4a6e"/>
+    <rect x="32" y="3" width="8" height="42" rx="4" fill="#2060a0"/>
+    <line x1="30" y1="10" x2="50" y2="10" stroke="#0a2a4e" stroke-width="2.5" opacity=".7"/>
+    <line x1="30" y1="20" x2="50" y2="20" stroke="#0a2a4e" stroke-width="2.5" opacity=".7"/>
+    <line x1="30" y1="30" x2="50" y2="30" stroke="#0a2a4e" stroke-width="2.5" opacity=".7"/>
+    <line x1="30" y1="40" x2="50" y2="40" stroke="#0a2a4e" stroke-width="2.5" opacity=".7"/>
+    <rect x="35" y="46" width="10" height="20" rx="3" fill="#888"/>
+    <rect x="36" y="47" width="8" height="12" rx="2" fill="#aaa"/>
+    <rect x="6" y="64" width="68" height="154" rx="5" fill="#1a4a6e"/>
+    <rect x="6" y="64" width="18" height="154" rx="5" fill="#154060"/>
+    <circle cx="15" cy="108" r="5" fill="none" stroke="#aaa" stroke-width="2"/>
+    <circle cx="15" cy="128" r="5" fill="none" stroke="#aaa" stroke-width="2"/>
+    <circle cx="15" cy="148" r="5" fill="none" stroke="#aaa" stroke-width="2"/>
+    <rect x="24" y="66" width="48" height="150" rx="2" fill="#f5f5f5"/>
+    <rect x="24" y="67" width="46" height="146" rx="1" fill="#fafafa"/>
+    <line x1="28" y1="82" x2="66" y2="82" stroke="#ddd" stroke-width="1"/>
+    <line x1="28" y1="89" x2="66" y2="89" stroke="#ddd" stroke-width="1"/>
+    <line x1="28" y1="96" x2="66" y2="96" stroke="#ddd" stroke-width="1"/>
+    <line x1="28" y1="103" x2="58" y2="103" stroke="#ddd" stroke-width="1"/>
+    <line x1="28" y1="110" x2="62" y2="110" stroke="#ddd" stroke-width="1"/>
+    <rect x="27" y="126" width="38" height="30" rx="3" fill="#fff8e1" stroke="#c9a800" stroke-width="1.2"/>
+    <line x1="29" y1="136" x2="62" y2="136" stroke="#c9a800" stroke-width=".8"/>
+    <text x="46" y="134" text-anchor="middle" font-family="Georgia,serif" font-size="5.5" font-weight="bold" fill="#333">YIL SONU</text>
+    <text x="46" y="143" text-anchor="middle" font-family="Arial" font-size="4.5" fill="#666">RAPORU 2024</text>
+    <text x="46" y="150" text-anchor="middle" font-family="Arial" font-size="4" fill="#999">GİZLİ ★★★</text>
+    <rect x="28" y="162" width="36" height="6" rx="1" fill="#e74c3c" opacity=".8"/>
+    <text x="46" y="167" text-anchor="middle" font-family="Arial" font-size="3.5" fill="white">ACİL EYLEM</text>
+  </svg>`,
+
+  coffee:`<svg width="80" height="220" viewBox="0 0 80 220">
+    <rect x="31" y="0" width="18" height="46" rx="9" fill="#795548"/>
+    <rect x="33" y="3" width="8" height="40" rx="4" fill="#a0715f"/>
+    <line x1="31" y1="10" x2="49" y2="10" stroke="#4e342e" stroke-width="2.5" opacity=".8"/>
+    <line x1="31" y1="20" x2="49" y2="20" stroke="#4e342e" stroke-width="2.5" opacity=".8"/>
+    <line x1="31" y1="32" x2="49" y2="32" stroke="#4e342e" stroke-width="2.5" opacity=".8"/>
+    <rect x="37" y="44" width="6" height="20" rx="3" fill="#6d4c41"/>
+    <path d="M20,63 Q18,63 17,65 L14,175 Q14,180 20,180 L60,180 Q66,180 66,175 L63,65 Q62,63 60,63 Z" fill="#fff8f4"/>
+    <path d="M20,65 Q19,65 18.5,67 L16,174 Q16,178 20,178 L60,178 Q64,178 64,174 L61.5,67 Q61,65 60,65 Z" fill="#6d4c41"/>
+    <ellipse cx="40" cy="72" rx="19" ry="6" fill="#3e2723"/>
+    <ellipse cx="37" cy="70" rx="5" ry="2" fill="#5d4037" opacity=".4"/>
+    <path d="M62,90 Q80,90 80,115 Q80,140 62,140" fill="none" stroke="#fff8f4" stroke-width="10" stroke-linecap="round"/>
+    <path d="M62,90 Q78,90 78,115 Q78,138 62,138" fill="none" stroke="#6d4c41" stroke-width="6" stroke-linecap="round"/>
+    <ellipse cx="40" cy="183" rx="28" ry="7" fill="#e0e0e0"/>
+    <ellipse cx="40" cy="181" rx="26" ry="6" fill="#f5f5f5"/>
+    <path d="M28,56 Q32,44 28,32" fill="none" stroke="rgba(180,180,180,.7)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M40,53 Q44,38 40,25" fill="none" stroke="rgba(180,180,180,.7)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M52,56 Q56,44 52,32" fill="none" stroke="rgba(180,180,180,.7)" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="40" y="130" text-anchor="middle" font-family="Arial" font-size="8" font-weight="bold" fill="rgba(255,255,255,.35)">SOĞUK</text>
+  </svg>`
+};
+
+/* init weapon */
+stick.innerHTML = weapons.baseball;
+
+function selectWeapon(btn, type) {
+  document.querySelectorAll('.weapon-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentWeapon = type;
+  stick.innerHTML = weapons[type];
+}
+
+/* ---- PHRASES ---- */
+const phrases = [
+  "Beni bırakın!","Bu son uyarım!","İK'yı arayacağım!","Au au auuuu!",
+  "Toplantıya gelin HEMEN!","Zam yok bu sene!","Fazla mesai yazarım!",
+  "Disiplin soruşturması!","Performans değerlendirmesi!","Bu böyle yapılmaz!",
+  "Zam oranını %5 yaptım, beğenmeyen çıksın!",
+  "Excel formülün yanlış, yeniden hesapla!",
+  "Bu rapor yetişmezse hafta sonu buradasın!",
+  "Pivot tabloyu düzgün yap!","VLOOKUP bilmiyor musun?!",
+  "KDV'yi dahil etmeyi unuttun!","Bütçe revizesi istiyorum, bugün!",
+  "Power BI'ı aç, sunum var!","IBAN'ı yanlış girmişsin!","Fatura nerede?!",
+  "SGK primlerini yatırdın mı?","Vergi beyannamesi ne zaman?",
+  "Sayfa sonu raporunu bekliyorum!","KPI'lar berbat!",
+  "Maaşlar gecikecek, senin yüzünden!","Dashboard'u güncelle!",
+];
+const hitWords = ["BAM!","POW!","ÇAAT!","VRUP!","DÜFT!","BOOM!","ZAP!","KÜFT!"];
+const kbWords  = ["CTRL+Z!","DELETE!","ESC!","ENTER!","TAB!","F5!"];
+const flWords  = ["DOSYA!","RAPOR!","EXCEL!","VERİ!","BÜTÇE!","TABLO!"];
+const cfWords  = ["ÇIRP!","BLAFF!","ISLAK!","CAFF!","DAMLA!"];
+const keyChars = ["Q","W","E","R","T","Y","A","S","D","F","Z","X","C","V","⌫","⏎","⇧","Ctrl","Del","Esc"];
+const stars    = ["⭐","💫","✨","🌟","💥","⚡"];
+
+/* ---- MOUSE ---- */
+document.addEventListener('mousemove', e => {
+  stick.style.left = (e.clientX - 40) + 'px';
+  stick.style.top  = (e.clientY - 20) + 'px';
+  if (!isSwinging) {
+    stick.style.transition = 'transform .08s ease';
+    stick.style.transform  = 'rotate(-35deg)';
+  }
+});
+
+document.addEventListener('mousedown', e => {
+  if (isSwinging) return;
+  isSwinging = true;
+  stick.style.transition = 'transform .07s ease-in';
+  stick.style.transform  = 'rotate(75deg)';
+  setTimeout(() => {
+    checkHit(e.clientX, e.clientY);
+    stick.style.transition = 'transform .18s ease-out';
+    stick.style.transform  = 'rotate(-35deg)';
+    setTimeout(() => { isSwinging = false; }, 180);
+  }, 70);
+});
+
+function checkHit(x, y) {
+  const r = head.getBoundingClientRect(), m = 20;
+  if (x >= r.left-m && x <= r.right+m && y >= r.top-m && y <= r.bottom+m) doHit(x, y);
+}
+
+/* ---- DO HIT ---- */
+function doHit(x, y) {
+  /* ERROR 404 — müdür blokladı */
+  if (Math.random() < 0.07) { showOverlay(error404); return; }
+
+  score++;
+  combo++;
+  clearTimeout(comboTimer);
+  comboTimer = setTimeout(() => { combo = 1; setCombo(1); }, 1600);
+  if (score > best) { best = score; popVal(bestVal, best); }
+  popVal(scoreVal, score);
+  setCombo(combo);
+
+  /* sway */
+  manager.classList.remove('swaying'); void manager.offsetWidth; manager.classList.add('swaying');
+  /* head bounce */
+  head.classList.remove('bouncing'); void head.offsetWidth; head.classList.add('bouncing');
+  /* arena shake */
+  arena.classList.remove('shaking'); void arena.offsetWidth; arena.classList.add('shaking');
+
+  /* tie flap */
+  const ta = (Math.random() - .5) * 80;
+  tie.style.transform = `translateX(-50%) rotate(${ta}deg)`;
+
+  /* eyes */
+  eyeL.style.height = eyeR.style.height = '3px';
+  eyeL.style.borderRadius = eyeR.style.borderRadius = '2px';
+  setTimeout(() => { eyeL.style.height = eyeR.style.height = '11px'; eyeL.style.borderRadius = eyeR.style.borderRadius = '50%'; }, 350);
+
+  /* brows */
+  browL.style.transform = 'rotate(-12deg)'; browR.style.transform = 'rotate(12deg)';
+  setTimeout(() => { browL.style.transform = 'rotate(5deg)'; browR.style.transform = 'rotate(-5deg)'; }, 500);
+
+  /* mouth */
+  mouth.style.borderBottom = 'none'; mouth.style.borderTop = '3px solid #c0392b';
+  mouth.style.borderRadius = '50% 50% 0 0'; mouth.style.bottom = '10px';
+  setTimeout(() => { mouth.style.borderTop='none'; mouth.style.borderBottom='3px solid #c0392b'; mouth.style.borderRadius='0 0 50% 50%'; mouth.style.bottom='12px'; }, 450);
+
+  /* speech */
+  speech.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+  speech.style.opacity = '1';
+  clearTimeout(speech._t);
+  speech._t = setTimeout(() => { speech.style.opacity='0'; }, 2200);
+
+  /* weapon fx */
+  weaponFx(x, y);
+
+  /* systems */
+  hitTimestamps.push(Date.now());
+  checkClothingDamage();
+  checkLevel();
+  checkPlant();
+  updateNameplate();
+
+  if (combo === 10 && !angelActive) triggerAngelMode();
+}
+
+/* ---- WEAPON FX ---- */
+function weaponFx(x, y) {
+  if (currentWeapon === 'keyboard') {
+    for (let i = 0; i < 8; i++) spawnKey(x, y);
+    spawnWord(x, y-50, kbWords[Math.floor(Math.random()*kbWords.length)]);
+  } else if (currentWeapon === 'folder') {
+    for (let i = 0; i < 6; i++) spawnFx(x, y, '📄', 'paper-fx');
+    spawnWord(x, y-50, flWords[Math.floor(Math.random()*flWords.length)]);
+  } else if (currentWeapon === 'coffee') {
+    triggerSlowMo();
+    for (let i = 0; i < 8; i++) spawnFx(x, y, '💧', 'coffee-drop');
+    spawnFx(x, y, '☕', 'star-fx');
+    spawnWord(x, y-50, cfWords[Math.floor(Math.random()*cfWords.length)]);
+  } else {
+    for (let i = 0; i < 6; i++) spawnFx(x, y, stars[Math.floor(Math.random()*stars.length)], 'star-fx');
+    spawnWord(x, y-50, hitWords[Math.floor(Math.random()*hitWords.length)]);
+  }
+}
+
+/* ---- SLOW MO ---- */
+function triggerSlowMo() {
+  if (slowmoActive) return;
+  slowmoActive = true;
+  slowmoOvl.classList.add('active');
+  const w = spawnFloatText('☕ YAVAŞ ÇEKİM', 360, 180, '#3498db', '1.8em');
+  setTimeout(() => { slowmoActive = false; slowmoOvl.classList.remove('active'); }, 2800);
+}
+
+/* ---- ANGEL MODE ---- */
+function triggerAngelMode() {
+  angelActive = true;
+  heaven.classList.add('active');
+  setTimeout(() => heaven.classList.remove('active'), 3800);
+  showOverlay(angelText);
+  soul.classList.remove('rising'); void soul.offsetWidth; soul.classList.add('rising');
+  for (let i = 0; i < 24; i++) setTimeout(() => {
+    spawnFx(160+Math.random()*400, 80+Math.random()*220, ['✨','💫','⭐','🌟','👼'][Math.floor(Math.random()*5)], 'star-fx');
+  }, i*110);
+  setTimeout(() => { angelActive = false; }, 4500);
+}
+
+/* ---- ERROR 404 ---- */
+/* ---- LEVEL SYSTEM ---- */
+function checkLevel() {
+  for (let i = LEVELS.length-1; i >= 0; i--) {
+    if (score >= LEVELS[i].min) {
+      if (i > currentLevel) {
+        currentLevel = i;
+        const lv = LEVELS[i];
+        /* arena wall colour */
+        arena.style.setProperty('--wall', lv.wall);
+        arena.style.background = `linear-gradient(180deg,${lv.wall} 0%,${lv.wall} 68%,#7d6608 68%,#6e5f08 100%)`;
+        /* badge */
+        lvlIcon.textContent = lv.icon;
+        lvlNameEl.textContent = lv.name;
+        lvlNameEl.style.color = lv.col;
+        lvlBadge.style.setProperty('--glow', lv.col);
+        lvlBadge.classList.remove('glow'); void lvlBadge.offsetWidth; lvlBadge.classList.add('glow');
+        /* popup */
+        levelupTxt.innerHTML = `${lv.icon} SEVİYE ATLADI!<br><span style="font-size:.5em;color:#ffe97a">${lv.name}</span>`;
+        showOverlay(levelupTxt);
+      }
+      const lv = LEVELS[i];
+      const nxt = lv.next ? lv.next : '∞';
+      lvlProg.textContent = `${score} / ${nxt}`;
+      break;
+    }
+  }
+}
+
+/* ---- PLANT ---- */
+function checkPlant() {
+  const threshold = [15,30,45,60,75,90];
+  for (let i = 0; i < threshold.length; i++) {
+    if (score === threshold[i]) {
+      const lf = document.getElementById('lf'+i);
+      if (lf) { lf.classList.add('falling'); setTimeout(()=>lf.remove(),700); }
+    }
+  }
+}
+
+/* ---- CLOTHING DAMAGE ---- */
+function checkClothingDamage() {
+  const thresholds = [30, 60, 100, 150];
+  for (let i = thresholds.length-1; i >= 0; i--) {
+    if (score >= thresholds[i] && damageLvl <= i) {
+      damageLvl = i+1;
+      body_el.className = 'dmg'+Math.min(damageLvl, 3);
+      /* tie gets progressively more crooked */
+      tie.style.transform = `translateX(-50%) rotate(${(damageLvl*12)-6}deg)`;
+      break;
+    }
+  }
+}
+
+/* ---- NAMEPLATE ---- */
+function updateNameplate() {
+  if (score >= 100) {
+    npName.textContent = 'Eski Genel Müdür';
+    npTitle.textContent = 'İstifası Bekleniyor';
+    npTitle.style.color = '#e74c3c';
+  } else if (score >= 50) {
+    npName.textContent = 'Tahsin B. (Yorgun)';
+    npTitle.textContent = 'Yetkileri Kısıtlı';
+    npTitle.style.color = '#e67e22';
+  } else if (score >= 20) {
+    npName.textContent = 'Tahsin B. (Terli)';
+    npTitle.textContent = 'Genel Müdür (Zayıfladı)';
+    npTitle.style.color = '';
+  }
+}
+
+/* ---- MONITOR ---- */
+function smashMonitor(e) {
+  e.stopPropagation();
+  monitorDmg++;
+  if (monitorDmg === 1) {
+    document.getElementById('mcrack').setAttribute('opacity','1');
+    spawnFloatText('💢 ÇATLADI!', e.clientX, e.clientY-30, '#e74c3c', '1.2em');
+  } else if (monitorDmg === 2) {
+    document.getElementById('mscrn').setAttribute('fill','#003d55');
+    document.getElementById('mcrack').setAttribute('opacity','1');
+    document.getElementById('mbsod').setAttribute('opacity','1');
+    spawnFloatText('💻 BSOD!', e.clientX, e.clientY-30, '#5865f2', '1.4em');
+    arena.classList.remove('shaking'); void arena.offsetWidth; arena.classList.add('shaking');
+  } else {
+    for (let i=0;i<10;i++) spawnFx(e.clientX, e.clientY, ['💻','🔧','⚡','🖥️'][Math.floor(Math.random()*4)], 'star-fx');
+    spawnFloatText('💥 TAMAMEN BOZULDU!', e.clientX, e.clientY-40, '#e74c3c', '1.1em');
+  }
+}
+
+/* ---- RAKI DRUNK ---- */
+function drinkRaki(e) {
+  e.stopPropagation();
+  if (document.body.classList.contains('drunk')) return;
+  document.body.classList.add('drunk');
+  showOverlay(drunkTxt);
+  arena.classList.remove('shaking'); void arena.offsetWidth; arena.classList.add('shaking');
+  setTimeout(() => document.body.classList.remove('drunk'), 2500);
+}
+
+/* ---- EFFICIENCY GRAPH ---- */
+(function initEffBars() {
+  for (let i = 0; i < 10; i++) {
+    const b = document.createElement('div');
+    b.className = 'eff-bar';
+    b.style.height = '2px';
+    b.style.background = '#27ae60';
+    effBars.appendChild(b);
+  }
+})();
+
+setInterval(() => {
+  const now = Date.now();
+  while (hitTimestamps.length && now - hitTimestamps[0] > 10000) hitTimestamps.shift();
+  const rate = hitTimestamps.length / 10;
+  effRate.textContent = rate.toFixed(1) + ' vuruş/sn';
+
+  const bars = effBars.querySelectorAll('.eff-bar');
+  bars.forEach((b, i) => {
+    const bucket = hitTimestamps.filter(t => t > now - (i+1)*1000 && t <= now - i*1000).length;
+    const h = Math.min(36, bucket * 12 + 2);
+    const pct = Math.min(1, bucket / 3);
+    const r = Math.round(39 + pct*192), g = Math.round(174 - pct*100), bl = 96;
+    b.style.height = h + 'px';
+    b.style.background = `rgb(${r},${g},${bl})`;
+  });
+
+  /* bonus at ≥3 hits/sec */
+  if (rate >= 3 && !bonusActive) {
+    bonusActive = true;
+    score += 5; popVal(scoreVal, score);
+    effBonus.style.opacity = '1';
+    setTimeout(() => { effBonus.style.opacity='0'; bonusActive=false; }, 2000);
+    effRate.style.color = '#f1c40f';
+    setTimeout(() => { effRate.style.color=''; }, 2000);
+  }
+  if (rate < 1) effRate.style.color = '#566573';
+}, 500);
+
+/* ---- HELPERS ---- */
+function setCombo(n) {
+  comboVal.textContent = 'x'+n;
+  comboVal.style.color = n>=10 ? '#ffd700' : n>5 ? '#e74c3c' : n>1 ? '#f39c12' : '#e74c3c';
+  if (n>1) popVal(comboVal, null);
+}
+function popVal(el, val) {
+  if (val !== null) el.textContent = val;
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+}
+function showOverlay(el) {
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+function spawnFx(x, y, emoji, cls) {
+  const el = document.createElement('div');
+  el.className = cls; el.textContent = emoji;
+  const angle = Math.random()*Math.PI*2, dist = 50+Math.random()*80;
+  el.style.setProperty('--tx', Math.cos(angle)*dist+'px');
+  el.style.setProperty('--ty', Math.sin(angle)*dist+'px');
+  el.style.left = (x-14)+'px'; el.style.top = (y-14)+'px';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', ()=>el.remove());
+}
+function spawnKey(x, y) {
+  const el = document.createElement('div');
+  el.className = 'key-fx';
+  el.textContent = keyChars[Math.floor(Math.random()*keyChars.length)];
+  const angle = Math.random()*Math.PI*2, dist = 40+Math.random()*90;
+  el.style.setProperty('--tx', Math.cos(angle)*dist+'px');
+  el.style.setProperty('--ty', Math.sin(angle)*dist+'px');
+  el.style.left = (x-14)+'px'; el.style.top = (y-14)+'px';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', ()=>el.remove());
+}
+function spawnWord(x, y, word) {
+  const el = document.createElement('div');
+  el.className = 'hit-word'; el.textContent = word;
+  el.style.left = x+'px'; el.style.top = y+'px';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', ()=>el.remove());
+}
+function spawnFloatText(text, x, y, color, size) {
+  const el = document.createElement('div');
+  el.className = 'hit-word'; el.textContent = text;
+  el.style.left=x+'px'; el.style.top=y+'px';
+  el.style.color=color; el.style.fontSize=size;
+  el.style.textShadow='none'; el.style.whiteSpace='nowrap';
+  document.body.appendChild(el);
+  el.addEventListener('animationend',()=>el.remove());
+}
+
+/* ---- BLINK ---- */
+function scheduleBlink() {
+  setTimeout(() => {
+    eyeL.style.height = eyeR.style.height = '2px';
+    setTimeout(() => { eyeL.style.height=eyeR.style.height='11px'; scheduleBlink(); }, 120);
+  }, 2500+Math.random()*3000);
+}
+scheduleBlink();
+
+/* ---- IDLE ---- */
+const idleLines = [
+  "Neden rapor gelmiyor?","KPI'lar berbat!","Bütçe aşımı var!",
+  "Dashboard güncellendi mi?","Excel açık kalmasın!","Power BI çalışıyor mu?",
+];
+function idleGroan() {
+  setTimeout(() => {
+    if (!speech.style.opacity || speech.style.opacity==='0') {
+      speech.textContent = idleLines[Math.floor(Math.random()*idleLines.length)];
+      speech.style.opacity='1';
+      setTimeout(()=>{speech.style.opacity='0';},2500);
+    }
+    idleGroan();
+  }, 5000+Math.random()*6000);
+}
+idleGroan();
+
+/* ---- CLEANUP ---- */
+manager.addEventListener('animationend', e => { if(e.target===manager) manager.classList.remove('swaying'); });
+head.addEventListener('animationend', () => head.classList.remove('bouncing'));
+arena.addEventListener('animationend', () => arena.classList.remove('shaking'));
+soul.addEventListener('animationend', () => soul.classList.remove('rising'));
+[angelText,error404,levelupTxt,drunkTxt].forEach(el => el.addEventListener('animationend',()=>el.classList.remove('show')));
+</script>
+</body>
+</html>
